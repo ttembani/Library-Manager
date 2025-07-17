@@ -1,17 +1,2 @@
-Mtshweni,7!YG4qAZA$,Thabisile Mtshweni,0637821795,user,9907151244236
-Thabi2,SxH=R(JrYj,Thabisile Ulender,0637821795,user,990715456623
-TembaniT,@(QBltoFgQ,Thulisa Tembani,0793239699,user,910517145631
-ThulisaT,Q%Fr$Jj(uo,Thulisa Tembani,0793239699,user,123
-Thulz,nZ^2Q-nb^M,Thulisa Tembani,0793239699,user,0321
-ThulisaM,=8T%*YUkmD,Thulisa Tembani,0793239699,user,0135
-admin,admin,Zanele Mlomo,0833942886,admin,2121
-ZukoM,O)*XU_D@u6,Zuko Makeleni,0793239699,user,789
-BOOK|Java Fundamentals|John Doe|B101|available
-BOOK|Object-Oriented Programming|Jane Smith|B102|available
-BOOK|Data Structures in Java|Alan Turing|B103|available
-BORROW|TembaniT|B103|Fri Jul 11 14:15:13 SAST 2025
-BORROW|TembaniT|B103|Fri Jul 11 14:17:28 SAST 2025
-BORROW|TembaniT|B103|Mon Jul 14 08:52:11 SAST 2025
-RETURN|TembaniT|B103|Mon Jul 14 08:54:55 SAST 2025
-BORROW|TembaniT|B103|Mon Jul 14 10:40:56 SAST 2025
-RETURN|TembaniT|B103|Mon Jul 14 10:41:29 SAST 2025
+Mtshweni,7!YG4qAZA$,Thabisile Mtshweni,0637821795,user,9907151203086
+Thabi2,SxH=R(JrYj,Thabisile Ulender,0637821795,user,9907151203087
