@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 public class BookManager {
     private static final String BOOKS_FILE = "books.dat";
     private static final String BORROW_RECORDS_FILE = "borrow_records.dat";
+    private static final String LIBRARY_DATA_FILE = "LibraryData.txt";
     private static List<Book> books = new ArrayList<>();
     private static List<BorrowRecord> borrowRecords = new ArrayList<>();
 
@@ -37,6 +38,34 @@ public class BookManager {
     private static void saveBorrowRecords() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(BORROW_RECORDS_FILE))) {
             oos.writeObject(borrowRecords);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Append borrow record to LibraryData.txt
+    private static void appendBorrowToLibraryData(BorrowRecord record) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("BORROW|%s|%s|%s",
+                    record.getUserId(),
+                    record.getBookId(),
+                    new Date().toString());
+            bw.write(line);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Append return record to LibraryData.txt
+    private static void appendReturnToLibraryData(BorrowRecord record) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("RETURN|%s|%s|%s",
+                    record.getUserId(),
+                    record.getBookId(),
+                    new Date().toString());
+            bw.write(line);
+            bw.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -76,12 +105,29 @@ public class BookManager {
     public static void addBook(Book book) {
         books.add(book);
         saveBooks();
+        appendBookToLibraryData(book);
+    }
+
+    private static void appendBookToLibraryData(Book book) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            // Format: BOOK|Title|Author|ID|available
+            String line = String.format("BOOK|%s|%s|%s|available",
+                    book.getTitle(),
+                    book.getAuthor(),
+                    book.getId());
+            bw.write(line);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static boolean deleteBook(String bookId) {
         boolean removed = books.removeIf(book -> book.getId().equals(bookId));
         if (removed) {
             saveBooks();
+            // You might want to also update LibraryData.txt by removing the book line
+            // For now, this is not implemented
         }
         return removed;
     }
@@ -112,6 +158,7 @@ public class BookManager {
                 book.setAvailable(false);
                 saveBooks();
                 saveBorrowRecords();
+                appendBorrowToLibraryData(record);
                 return true;
             }
         }
@@ -145,6 +192,7 @@ public class BookManager {
                 book.setAvailable(true);
                 saveBooks();
                 saveBorrowRecords();
+                appendReturnToLibraryData(record);
                 return true;
             }
         }
