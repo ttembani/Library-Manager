@@ -24,7 +24,6 @@ public class LoginFrame extends JFrame {
             bgImage = ImageIO.read(getClass().getResource("Background/background.jpg"));
         } catch (Exception e) {
             System.out.println("Background image not found");
-            bgImage = null;
         }
 
         JPanel backgroundPanel = new JPanel() {
@@ -90,7 +89,7 @@ public class LoginFrame extends JFrame {
         gbc.gridx = 1;
         formPanel.add(passwordField, gbc);
 
-        // Show password checkbox
+        // Show password
         showPassword = new JCheckBox("Show Password");
         showPassword.setForeground(Color.LIGHT_GRAY);
         showPassword.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -172,7 +171,6 @@ public class LoginFrame extends JFrame {
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(bg.darker());
             }
-
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(bg);
             }
@@ -202,9 +200,9 @@ public class LoginFrame extends JFrame {
 
         dispose();
         if ("admin".equalsIgnoreCase(user.getRole())) {
-            new AdminDashboard(user.getUsername()).setVisible(true);
+            new AdminDashboard(user).setVisible(true); // ✅ pass full User
         } else {
-            new UserDashboard(user.getUsername()).setVisible(true);
+            new UserDashboard(user).setVisible(true);  // ✅ pass full User
         }
     }
 

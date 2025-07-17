@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/LibraryMananger.iml" filepath="$PROJECT_DIR$/LibraryMananger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/borrowBook/borrowBook.iml" filepath="$PROJECT_DIR$/borrowBook/borrowBook.iml" />
     </modules>
   </component>
 </project>

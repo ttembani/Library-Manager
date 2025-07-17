@@ -1,6 +1,14 @@
-public class User {
-    private String username, password, fullName, contact, role, membershipId;
+import java.io.Serializable;
 
+public class User implements Serializable {
+    private final String username;
+    private final String password;
+    private final String fullName;
+    private final String contact;       // e.g. phone or email
+    private final String role;          // e.g. "admin" or "user"
+    private final String membershipId;  // some ID string
+
+    // Constructor for all fields
     public User(String username, String password, String fullName, String contact, String role, String membershipId) {
         this.username = username;
         this.password = password;
@@ -10,7 +18,7 @@ public class User {
         this.membershipId = membershipId;
     }
 
-    // Getters (needed for AuthManager)
+    // Getters
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getFullName() { return fullName; }
