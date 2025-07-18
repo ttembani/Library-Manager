@@ -43,68 +43,6 @@ public class BookManager {
         }
     }
 
-    private static void appendBookToLibraryData(Book book) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
-            String line = String.format("BOOK|%s|%s|%s|available",
-                    book.getTitle(), book.getAuthor(), book.getId());
-            bw.write(line);
-            bw.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void appendBorrowToLibraryData(BorrowRecord record) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
-            String line = String.format("BORROW|%s|%s|%s",
-                    record.getUserId(), record.getBookId(), new Date().toString());
-            bw.write(line);
-            bw.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void appendReturnToLibraryData(BorrowRecord record) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
-            String line = String.format("RETURN|%s|%s|%s",
-                    record.getUserId(), record.getBookId(), new Date().toString());
-            bw.write(line);
-            bw.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void removeBookFromLibraryData(String bookId) {
-        try {
-            List<String> lines = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new FileReader(LIBRARY_DATA_FILE))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (!line.startsWith("BOOK|")) {
-                        lines.add(line);
-                        continue;
-                    }
-                    String[] parts = line.split("\\|");
-                    if (parts.length >= 4 && !parts[3].equals(bookId)) {
-                        lines.add(line);
-                    }
-                }
-            }
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE))) {
-                for (String updatedLine : lines) {
-                    writer.write(updatedLine);
-                    writer.newLine();
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static List<Book> searchByTitle(String title) {
         return books.stream()
                 .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
@@ -139,14 +77,12 @@ public class BookManager {
     public static void addBook(Book book) {
         books.add(book);
         saveBooks();
-        appendBookToLibraryData(book);
     }
 
     public static boolean deleteBook(String bookId) {
         boolean removed = books.removeIf(book -> book.getId().equals(bookId));
         if (removed) {
             saveBooks();
-            removeBookFromLibraryData(bookId);
         }
         return removed;
     }
