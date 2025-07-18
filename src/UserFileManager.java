@@ -1,75 +1,102 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class UserFileManager {
     private static final String USER_FILE = "LibraryData.txt";
 
-    // Load all users from LibraryData.txt
-    public static List<User> loadUsers() {
-        List<User> users = new ArrayList<>();
-        File file = new File(USER_FILE);
-        if (!file.exists()) {
-            return users;
-        }
+    // Add new user in USER|... format to LibraryData.txt
+    public static void addUser(User user) {
+        appendUserToLibraryData(user);
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    // Appends the new user right after existing USER lines, before BOOK or BORROW
+    private static void appendUserToLibraryData(User user) {
+        File file = new File(USER_FILE);
+        List<String> lines = new ArrayList<>();
+
+        try {
+            // Read existing lines
+            if (file.exists()) {
+                lines = new ArrayList<>(Files.readAllLines(Paths.get(USER_FILE)));
+            }
+
+            // Create formatted user line
+            String userLine = String.format("USER|%s|%s|%s|%s|%s|%s",
+                    user.getUsername(),
+                    user.getPassword(),
+                    user.getFullName(),
+                    user.getContact(),
+                    user.getRole(),
+                    user.getMembershipId()
+            );
+
+            // Find insert position (after last USER line, before BOOK/BORROW)
+            int insertIndex = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                if (line.startsWith("USER|")) {
+                    insertIndex = i + 1;
+                } else if (line.startsWith("BOOK|") || line.startsWith("BORROW|")) {
+                    break;
+                }
+            }
+
+            lines.add(insertIndex, userLine);
+
+            // Ensure one blank line after last USER line
+            int blankLineIndex = insertIndex + 1;
+            if (blankLineIndex >= lines.size() || !lines.get(blankLineIndex).isEmpty()) {
+                lines.add(blankLineIndex, "");
+            }
+
+            // Write back all lines to LibraryData.txt
+            Files.write(Paths.get(USER_FILE), lines);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Check if a username already exists
+    public static boolean userExists(String username) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USER_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",", -1); // -1 keeps empty fields
-                if (parts.length == 6) {
-                    String username = parts[0];
-                    String password = parts[1];
-                    String fullName = parts[2];
-                    String contact = parts[3];
-                    String role = parts[4];
-                    String membershipId = parts[5];
-                    users.add(new User(username, password, fullName, contact, role, membershipId));
+                if (line.startsWith("USER|")) {
+                    String[] parts = line.split("\\|");
+                    if (parts.length >= 2 && parts[1].equalsIgnoreCase(username)) {
+                        return true;
+                    }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return users;
+        return false;
     }
 
-    // Save list of users to LibraryData.txt
-    public static void saveUsers(List<User> users) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USER_FILE))) {
-            for (User user : users) {
-                writer.write(String.join(",",
-                        user.getUsername(),
-                        user.getPassword(),
-                        user.getFullName(),
-                        user.getContact(),
-                        user.getRole(),
-                        user.getMembershipId()));
-                writer.newLine();
+    // Load all users from LibraryData.txt
+    public static List<User> loadUsers() {
+        List<User> users = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(USER_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("USER|")) {
+                    String[] parts = line.split("\\|");
+                    if (parts.length == 7) {
+                        users.add(new User(
+                                parts[1], parts[2], parts[3],
+                                parts[4], parts[5], parts[6]
+                        ));
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    // Add new user
-    public static void addUser(User user) {
-        List<User> users = loadUsers();
-        users.add(user);
-        saveUsers(users);
-    }
-
-    // Delete user by username
-    public static void deleteUser(String username) {
-        List<User> users = loadUsers();
-        users.removeIf(u -> u.getUsername().equalsIgnoreCase(username));
-        saveUsers(users);
-    }
-
-    // Check if username exists
-    public static boolean userExists(String username) {
-        return loadUsers().stream()
-                .anyMatch(u -> u.getUsername().equalsIgnoreCase(username));
+        return users;
     }
 
     // Optional: Get user by username

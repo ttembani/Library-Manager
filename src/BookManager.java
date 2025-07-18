@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -6,6 +7,7 @@ public class BookManager {
     private static final String BOOKS_FILE = "books.dat";
     private static final String BORROW_RECORDS_FILE = "borrow_records.dat";
     private static final String LIBRARY_DATA_FILE = "LibraryData.txt";
+
     private static List<Book> books = new ArrayList<>();
     private static List<BorrowRecord> borrowRecords = new ArrayList<>();
 
@@ -43,46 +45,101 @@ public class BookManager {
         }
     }
 
-    public static List<Book> searchByTitle(String title) {
-        return books.stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .collect(Collectors.toList());
+    private static void appendBookToLibraryData(Book book) {
+        try {
+            List<String> lines = new ArrayList<>();
+            File file = new File(LIBRARY_DATA_FILE);
+
+            if (file.exists()) {
+                lines = new ArrayList<>(Files.readAllLines(file.toPath()));
+            }
+
+            String bookLine = String.format("BOOK|%s|%s|%s|available",
+                    book.getTitle(), book.getAuthor(), book.getId());
+
+            int insertIndex = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                if (lines.get(i).startsWith("BOOK|")) {
+                    insertIndex = i + 1;
+                }
+            }
+
+            lines.add(insertIndex, bookLine);
+
+            int blankLineIndex = insertIndex + 1;
+            if (blankLineIndex >= lines.size() || !lines.get(blankLineIndex).isEmpty()) {
+                lines.add(blankLineIndex, "");
+            }
+
+            Files.write(file.toPath(), lines);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static List<Book> searchByAuthor(String author) {
-        return books.stream()
-                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
-                .collect(Collectors.toList());
+    private static void appendBorrowToLibraryData(BorrowRecord record) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("BORROW|%s|%s|%s",
+                    record.getUserId(), record.getBookId(), new Date().toString());
+            bw.write(line);
+            bw.newLine(); // ✅ Only 1 line
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static List<Book> searchByTitleOrAuthor(String query) {
-        String lowerQuery = query.toLowerCase();
-        return books.stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(lowerQuery) ||
-                        book.getAuthor().toLowerCase().contains(lowerQuery))
-                .collect(Collectors.toList());
+    private static void appendReturnToLibraryData(BorrowRecord record) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("RETURN|%s|%s|%s",
+                    record.getUserId(), record.getBookId(), new Date().toString());
+            bw.write(line);
+            bw.newLine(); // ✅ Only 1 line
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static List<Book> getAllBooks() {
-        return new ArrayList<>(books);
-    }
+    private static void removeBookFromLibraryData(String bookId) {
+        try {
+            List<String> lines = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(LIBRARY_DATA_FILE))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.startsWith("BOOK|")) {
+                        lines.add(line);
+                        continue;
+                    }
+                    String[] parts = line.split("\\|");
+                    if (parts.length >= 4 && !parts[3].equals(bookId)) {
+                        lines.add(line);
+                    }
+                }
+            }
 
-    public static Book getBookById(String bookId) {
-        return books.stream()
-                .filter(book -> book.getId().equals(bookId))
-                .findFirst()
-                .orElse(null);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE))) {
+                for (String updatedLine : lines) {
+                    writer.write(updatedLine);
+                    writer.newLine();
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void addBook(Book book) {
         books.add(book);
         saveBooks();
+        appendBookToLibraryData(book);
     }
 
     public static boolean deleteBook(String bookId) {
         boolean removed = books.removeIf(book -> book.getId().equals(bookId));
         if (removed) {
             saveBooks();
+            removeBookFromLibraryData(bookId);
         }
         return removed;
     }
@@ -154,6 +211,37 @@ public class BookManager {
         return false;
     }
 
+    public static List<Book> getAllBooks() {
+        return new ArrayList<>(books);
+    }
+
+    public static Book getBookById(String bookId) {
+        return books.stream()
+                .filter(book -> book.getId().equals(bookId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static List<Book> searchByTitle(String title) {
+        return books.stream()
+                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    public static List<Book> searchByAuthor(String author) {
+        return books.stream()
+                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    public static List<Book> searchByTitleOrAuthor(String query) {
+        String lowerQuery = query.toLowerCase();
+        return books.stream()
+                .filter(book -> book.getTitle().toLowerCase().contains(lowerQuery)
+                        || book.getAuthor().toLowerCase().contains(lowerQuery))
+                .collect(Collectors.toList());
+    }
+
     public static List<BorrowRecord> getPendingRequests() {
         return borrowRecords.stream()
                 .filter(r -> "PENDING".equals(r.getStatus()))
@@ -162,8 +250,8 @@ public class BookManager {
 
     public static List<BorrowRecord> getUserBorrowedBooks(String userId) {
         return borrowRecords.stream()
-                .filter(r -> r.getUserId().equals(userId) &&
-                        ("APPROVED".equals(r.getStatus()) || "PENDING".equals(r.getStatus())))
+                .filter(r -> r.getUserId().equals(userId)
+                        && ("APPROVED".equals(r.getStatus()) || "PENDING".equals(r.getStatus())))
                 .collect(Collectors.toList());
     }
 
