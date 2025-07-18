@@ -1,16 +1,18 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class AdminDashboard extends JFrame {
     private final User adminUser;
     private JTabbedPane tabbedPane;
     private JTable bookTable;
     private JTable borrowRequestsTable;
+    private JTable userTable;
     private DefaultTableModel bookTableModel;
     private DefaultTableModel borrowRequestsModel;
+    private DefaultTableModel userTableModel;
     private JTextField idField, titleField, authorField, genreField, yearField, locationField;
 
     public AdminDashboard(User adminUser) {
@@ -189,16 +191,27 @@ public class AdminDashboard extends JFrame {
 
     private JPanel createUserManagementPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JLabel("User Management - Coming Soon", SwingConstants.CENTER), BorderLayout.CENTER);
-        return panel;
-    }
 
-    private void logoutAction(ActionEvent e) {
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            dispose();
-            new LoginFrame().setVisible(true);
-        }
+        String[] columnNames = {"Username", "Full Name", "Contact", "Role", "Membership ID"};
+        userTableModel = new DefaultTableModel(columnNames, 0) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        userTable = new JTable(userTableModel);
+        userTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane scrollPane = new JScrollPane(userTable);
+        scrollPane.setPreferredSize(new Dimension(900, 300));
+
+        JButton deleteUserButton = new JButton("Delete Selected User");
+        deleteUserButton.addActionListener(e -> deleteUser());
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(deleteUserButton, BorderLayout.SOUTH);
+
+        refreshUserTable();
+        return panel;
     }
 
     private void refreshBookTable() {
@@ -233,26 +246,38 @@ public class AdminDashboard extends JFrame {
         }
     }
 
-    private void approveRequest() {
-        int selectedRow = borrowRequestsTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
-            if (BookManager.approveBorrow(requestId)) {
-                JOptionPane.showMessageDialog(this, "Request approved successfully!");
-                refreshBorrowRequests();
-                refreshBookTable();
+    private void refreshUserTable() {
+        userTableModel.setRowCount(0);
+        for (User user : UserFileManager.loadUsers()) {
+            userTableModel.addRow(new Object[]{
+                    user.getUsername(),
+                    user.getFullName(),
+                    user.getContact(),
+                    user.getRole(),
+                    user.getMembershipId()
+            });
+        }
+    }
+
+    private void deleteUser() {
+        int row = userTable.getSelectedRow();
+        if (row >= 0) {
+            String username = (String) userTableModel.getValueAt(row, 0);
+            if (!username.equalsIgnoreCase(adminUser.getUsername())) {
+                UserFileManager.deleteUser(username);
+                JOptionPane.showMessageDialog(this, "User deleted successfully.");
+                refreshUserTable();
+            } else {
+                JOptionPane.showMessageDialog(this, "You cannot delete your own admin account.");
             }
         }
     }
 
-    private void rejectRequest() {
-        int selectedRow = borrowRequestsTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
-            if (BookManager.rejectBorrow(requestId)) {
-                JOptionPane.showMessageDialog(this, "Request rejected.");
-                refreshBorrowRequests();
-            }
+    private void logoutAction(ActionEvent e) {
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            dispose();
+            new LoginFrame().setVisible(true);
         }
     }
 
@@ -314,4 +339,31 @@ public class AdminDashboard extends JFrame {
         locationField.setText("");
         bookTable.clearSelection();
     }
+    private void approveRequest() {
+    int selectedRow = borrowRequestsTable.getSelectedRow();
+    if (selectedRow >= 0) {
+        String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
+        if (BookManager.approveBorrow(requestId)) {
+            JOptionPane.showMessageDialog(this, "Request approved successfully!");
+            refreshBorrowRequests();
+            refreshBookTable();
+        }
+    } else {
+        JOptionPane.showMessageDialog(this, "Please select a request to approve.");
+    }
+}
+
+private void rejectRequest() {
+    int selectedRow = borrowRequestsTable.getSelectedRow();
+    if (selectedRow >= 0) {
+        String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
+        if (BookManager.rejectBorrow(requestId)) {
+            JOptionPane.showMessageDialog(this, "Request rejected.");
+            refreshBorrowRequests();
+        }
+    } else {
+        JOptionPane.showMessageDialog(this, "Please select a request to reject.");
+    }
+}
+
 }

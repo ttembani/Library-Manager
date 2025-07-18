@@ -1,7 +1,6 @@
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.*;
 
 public class RegisterFrame extends JFrame {
     private JTextField usernameField, idField, fullNameField, contactField;
@@ -57,7 +56,7 @@ public class RegisterFrame extends JFrame {
         roleLabel.setForeground(Color.WHITE);
         roleLabel.setFont(labelFont);
         roleBox = new JComboBox<>(new String[]{"User"});
-        roleBox.setEnabled(false);  // disable so users can't select admin
+        roleBox.setEnabled(false);
         gbc.gridy = 1; gbc.gridx = 0;
         container.add(roleLabel, gbc);
         gbc.gridx = 1;
@@ -176,27 +175,31 @@ public class RegisterFrame extends JFrame {
         btn.setBorderPainted(false);
     }
 
+    // ✅ Updated to save user to LibraryData.txt
     private void handleRegister() {
         String username = usernameField.getText().trim();
         String id = idField.getText().trim();
         String password = new String(passwordField.getPassword());
         String fullName = fullNameField.getText().trim();
         String contact = contactField.getText().trim();
-        String role = "user";  // hardcoded as user
+        String role = "user";  // hardcoded
 
         if (username.isEmpty() || id.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        User user = new User(username, password, fullName, contact, role, id);
-        if (AuthManager.registerUser(user)) {
-            JOptionPane.showMessageDialog(this, "Registered successfully!\nYour password: " + password,
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-            dispose();
-            new LoginFrame().setVisible(true);
-        } else {
+        if (UserFileManager.userExists(username)) {
             JOptionPane.showMessageDialog(this, "Username already exists!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        User user = new User(username, password, fullName, contact, role, id);
+        UserFileManager.addUser(user); // Save to LibraryData.txt (not users.dat)
+
+        JOptionPane.showMessageDialog(this, "Registered successfully!\nYour password: " + password,
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+        dispose();
+        new LoginFrame().setVisible(true);
     }
 }

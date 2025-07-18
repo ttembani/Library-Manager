@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 public class BookManager {
     private static final String BOOKS_FILE = "books.dat";
     private static final String BORROW_RECORDS_FILE = "borrow_records.dat";
+    private static final String LIBRARY_DATA_FILE = "LibraryData.txt";
     private static List<Book> books = new ArrayList<>();
     private static List<BorrowRecord> borrowRecords = new ArrayList<>();
 
@@ -37,6 +38,68 @@ public class BookManager {
     private static void saveBorrowRecords() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(BORROW_RECORDS_FILE))) {
             oos.writeObject(borrowRecords);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void appendBookToLibraryData(Book book) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("BOOK|%s|%s|%s|available",
+                    book.getTitle(), book.getAuthor(), book.getId());
+            bw.write(line);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void appendBorrowToLibraryData(BorrowRecord record) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("BORROW|%s|%s|%s",
+                    record.getUserId(), record.getBookId(), new Date().toString());
+            bw.write(line);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void appendReturnToLibraryData(BorrowRecord record) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("RETURN|%s|%s|%s",
+                    record.getUserId(), record.getBookId(), new Date().toString());
+            bw.write(line);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void removeBookFromLibraryData(String bookId) {
+        try {
+            List<String> lines = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(LIBRARY_DATA_FILE))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.startsWith("BOOK|")) {
+                        lines.add(line);
+                        continue;
+                    }
+                    String[] parts = line.split("\\|");
+                    if (parts.length >= 4 && !parts[3].equals(bookId)) {
+                        lines.add(line);
+                    }
+                }
+            }
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE))) {
+                for (String updatedLine : lines) {
+                    writer.write(updatedLine);
+                    writer.newLine();
+                }
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -76,12 +139,14 @@ public class BookManager {
     public static void addBook(Book book) {
         books.add(book);
         saveBooks();
+        appendBookToLibraryData(book);
     }
 
     public static boolean deleteBook(String bookId) {
         boolean removed = books.removeIf(book -> book.getId().equals(bookId));
         if (removed) {
             saveBooks();
+            removeBookFromLibraryData(bookId);
         }
         return removed;
     }
@@ -112,6 +177,7 @@ public class BookManager {
                 book.setAvailable(false);
                 saveBooks();
                 saveBorrowRecords();
+                appendBorrowToLibraryData(record);
                 return true;
             }
         }
@@ -145,6 +211,7 @@ public class BookManager {
                 book.setAvailable(true);
                 saveBooks();
                 saveBorrowRecords();
+                appendReturnToLibraryData(record);
                 return true;
             }
         }

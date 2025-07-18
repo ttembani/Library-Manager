@@ -1,2 +1,6 @@
-Mtshweni,7!YG4qAZA$,Thabisile Mtshweni,0637821795,user,9907151203086
-Thabi2,SxH=R(JrYj,Thabisile Ulender,0637821795,user,9907151203087
+Mtshweni,7!YG4qAZA$,Thabisile Mtshweni,0637821795,user,9907151244236
+admin,admin,Zanele Mlomo,0833942886,admin,2121
+LiyanaT,lU83+lz(W6,Liyana Themba,0735717319,user,1235469872568
+AnamM,%6VM1be4ok,Anam Mhlophe,0833942668,user,8965324587965
+BOOK|The Java Handbook|Patrick Naughton|8895|available
+BORROW|AnamM|2234|Thu Jul 17 15:15:12 SAST 2025
