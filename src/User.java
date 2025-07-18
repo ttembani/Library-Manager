@@ -7,7 +7,7 @@ public class User implements Serializable {
     private final String contact;       // e.g. phone or email
     private final String role;          // e.g. "admin" or "user"
     private final String membershipId;  // some ID string
-
+    private String email;   // ✅ ADD THIS
     // Constructor for all fields
     public User(String username, String password, String fullName, String contact, String role, String membershipId) {
         this.username = username;
@@ -25,4 +25,6 @@ public class User implements Serializable {
     public String getContact() { return contact; }
     public String getRole() { return role; }
     public String getMembershipId() { return membershipId; }
+    public String getEmail() { return email; }   // ✅ ADD THIS
+    
 }

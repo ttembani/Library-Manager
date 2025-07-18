@@ -106,4 +106,8 @@ public class UserFileManager {
                 .findFirst()
                 .orElse(null);
     }
+
+    static void deleteUser(String username) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
