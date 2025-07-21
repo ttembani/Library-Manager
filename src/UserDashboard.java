@@ -13,6 +13,13 @@ public class UserDashboard extends JFrame {
     private DefaultTableModel myBooksModel;
     private JTextField searchField;
 
+    // Define green & white colors for theme
+    private final Color PRIMARY_GREEN = new Color(46, 125, 50);        // #2E7D32
+    private final Color BUTTON_GREEN = new Color(56, 142, 60);         // Slightly lighter green for hover
+    private final Color BG_WHITE = Color.WHITE;
+    private final Color TEXT_DARK = new Color(33, 33, 33);             // Dark text
+    private final Color LIGHT_GRAY = new Color(245, 245, 245);
+
     public UserDashboard(User user) {
         this.user = user;
         initializeUI();
@@ -25,14 +32,14 @@ public class UserDashboard extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Header Panel
+        // Header Panel with green background
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        headerPanel.setBackground(new Color(33, 150, 243));
+        headerPanel.setBackground(new Color(0x00897B)); // Teal
 
         JLabel welcomeLabel = new JLabel("Welcome, " + user.getFullName());
         welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        welcomeLabel.setForeground(Color.WHITE);
+        welcomeLabel.setForeground(BG_WHITE);
         headerPanel.add(welcomeLabel, BorderLayout.WEST);
 
         // Profile button with icon
@@ -74,10 +81,15 @@ public class UserDashboard extends JFrame {
     private JPanel createBookBrowsePanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(BG_WHITE);
 
         JPanel searchPanel = new JPanel(new BorderLayout(10, 10));
+        searchPanel.setBackground(BG_WHITE);
+
         JLabel searchLabel = new JLabel("Search:");
         searchLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        searchLabel.setForeground(TEXT_DARK);
+
         searchField = new JTextField();
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
@@ -90,6 +102,7 @@ public class UserDashboard extends JFrame {
         });
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttons.setBackground(BG_WHITE);
         buttons.add(searchButton);
         buttons.add(clearButton);
 
@@ -117,6 +130,7 @@ public class UserDashboard extends JFrame {
     private JPanel createMyBooksPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(BG_WHITE);
 
         String[] columns = { "Request ID", "Book ID", "Title", "Status", "Request Date" };
         myBooksModel = new DefaultTableModel(columns, 0) {
@@ -244,18 +258,18 @@ public class UserDashboard extends JFrame {
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        button.setBackground(new Color(25, 118, 210));
-        button.setForeground(Color.BLACK);
+        button.setBackground(PRIMARY_GREEN);
+        button.setForeground(Color.black);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(21, 101, 192));
+                button.setBackground(BUTTON_GREEN);
             }
 
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(25, 118, 210));
+                button.setBackground(PRIMARY_GREEN);
             }
         });
         return button;
@@ -265,10 +279,12 @@ public class UserDashboard extends JFrame {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.setRowHeight(24);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(240, 240, 240));
-        table.getTableHeader().setForeground(new Color(60, 60, 60));
+        table.getTableHeader().setBackground(new Color(245, 245, 245));  // light gray header
+        table.getTableHeader().setForeground(TEXT_DARK);
         table.setGridColor(new Color(220, 220, 220));
         table.setShowGrid(true);
+        table.setSelectionBackground(BUTTON_GREEN);
+        table.setSelectionForeground(BG_WHITE);
     }
 
     // === User Profile Frame ===
@@ -281,7 +297,7 @@ public class UserDashboard extends JFrame {
 
             JPanel panel = new JPanel(new GridBagLayout());
             panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-            panel.setBackground(Color.WHITE);
+            panel.setBackground(BG_WHITE);
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.anchor = GridBagConstraints.WEST;
@@ -291,7 +307,7 @@ public class UserDashboard extends JFrame {
 
             JLabel title = new JLabel("User Profile");
             title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            title.setForeground(new Color(0, 102, 204));
+            title.setForeground(PRIMARY_GREEN);
             gbc.gridx = 0; gbc.gridy = y++; gbc.gridwidth = 2;
             panel.add(title, gbc);
 
