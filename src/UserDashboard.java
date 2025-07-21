@@ -58,7 +58,26 @@ public class UserDashboard extends JFrame {
         profileMenu.add(logoutItem);
 
         profileButton.addActionListener(e -> profileMenu.show(profileButton, 0, profileButton.getHeight()));
-        headerPanel.add(profileButton, BorderLayout.EAST);
+        // Create a horizontal panel to hold both logout and profile buttons
+        JPanel topRightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        topRightButtons.setOpaque(false); // Make it transparent like the header
+
+// Logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        logoutButton.setFocusPainted(false);
+        logoutButton.setBackground(Color.WHITE);
+        logoutButton.setForeground(new Color(33, 150, 243));
+        logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutButton.addActionListener(this::logoutAction);
+
+// Add buttons to the top-right panel
+        topRightButtons.add(logoutButton);
+        topRightButtons.add(profileButton);
+
+// Add the panel to the header
+        headerPanel.add(topRightButtons, BorderLayout.EAST);
+
 
         // Tabs
         JTabbedPane tabbedPane = new JTabbedPane();
