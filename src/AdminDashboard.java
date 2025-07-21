@@ -19,6 +19,13 @@ public class AdminDashboard extends JFrame {
     private JLabel availableBooksLabel;
     private JLabel pendingRequestsLabel;
 
+    // Define green & white colors for theme
+    private final Color PRIMARY_GREEN = new Color(46, 125, 50);        // #2E7D32
+    private final Color BUTTON_GREEN = new Color(56, 142, 60);         // Slightly lighter green for hover
+    private final Color BG_WHITE = Color.WHITE;
+    private final Color TEXT_DARK = new Color(33, 33, 33);             // Dark text
+    private final Color LIGHT_GRAY = new Color(245, 245, 245);
+
     public AdminDashboard(User adminUser) {
         this.adminUser = adminUser;
         initializeUI();
@@ -30,43 +37,63 @@ public class AdminDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        headerPanel.setBackground(new Color(0x00897B)); // Teal
+
+        JLabel welcomeLabel = new JLabel("Welcome, Admin: " + adminUser.getFullName());
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        welcomeLabel.setForeground(Color.WHITE);
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+
+        JButton logoutButton = createStyledButton("Logout");
+        logoutButton.addActionListener(this::logoutAction);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+
         tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tabbedPane.addTab("Dashboard", createDashboardPanel());
         tabbedPane.addTab("Manage Books", createBookManagementPanel());
         tabbedPane.addTab("Borrow Requests", createBorrowRequestsPanel());
         tabbedPane.addTab("Manage Users", createUserManagementPanel());
 
-        JButton logoutButton = new JButton("Logout");
-        logoutButton.addActionListener(this::logoutAction);
-
         JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(BG_WHITE);
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
-        mainPanel.add(logoutButton, BorderLayout.SOUTH);
 
-        add(mainPanel);
+        add(headerPanel, BorderLayout.NORTH);
+        add(mainPanel, BorderLayout.CENTER);
+
         setVisible(true);
     }
 
     private JPanel createDashboardPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(BG_WHITE);
 
         JLabel welcomeLabel = new JLabel("Welcome, Admin: " + adminUser.getFullName(), SwingConstants.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        welcomeLabel.setForeground(TEXT_DARK);
+        welcomeLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         panel.add(welcomeLabel, BorderLayout.NORTH);
 
         JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 10));
         statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        statsPanel.setBackground(BG_WHITE);
 
-        totalBooksLabel = new JLabel();
-        availableBooksLabel = new JLabel();
-        pendingRequestsLabel = new JLabel();
+        // Initialize your stat labels here:
+        totalBooksLabel = new JLabel("0", SwingConstants.CENTER);
+        availableBooksLabel = new JLabel("0", SwingConstants.CENTER);
+        pendingRequestsLabel = new JLabel("0", SwingConstants.CENTER);
 
-        statsPanel.add(createStatCard("Total Books", totalBooksLabel, Color.BLUE));
-        statsPanel.add(createStatCard("Available Books", availableBooksLabel, Color.GREEN));
-        statsPanel.add(createStatCard("Pending Requests", pendingRequestsLabel, Color.ORANGE));
+        statsPanel.add(createStatCard("Total Books", totalBooksLabel, new Color(0x00897B)));
+        statsPanel.add(createStatCard("Available Books", availableBooksLabel, new Color(0x43A047))); // Green
+        statsPanel.add(createStatCard("Pending Requests", pendingRequestsLabel, new Color(0xFB8C00))); // Orange
 
         panel.add(statsPanel, BorderLayout.CENTER);
-        updateDashboardStats();
+
+        updateDashboardStats();  // Update stats once labels are initialized
+
         return panel;
     }
 
@@ -76,14 +103,15 @@ public class AdminDashboard extends JFrame {
                 BorderFactory.createLineBorder(color, 2),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
-        card.setBackground(Color.WHITE);
+        card.setBackground(BG_WHITE);
 
         JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titleLabel.setForeground(color);
 
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        valueLabel.setForeground(TEXT_DARK);
 
         card.add(titleLabel, BorderLayout.NORTH);
         card.add(valueLabel, BorderLayout.CENTER);
@@ -101,12 +129,17 @@ public class AdminDashboard extends JFrame {
         pendingRequestsLabel.setText(String.valueOf(pendingRequests));
     }
 
+    // ... rest of your code remains unchanged
+
     private JPanel createBookManagementPanel() {
+        // your original createBookManagementPanel() code here unchanged
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(BG_WHITE);
 
         JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Book Management"));
+        formPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PRIMARY_GREEN), "Book Management"));
+        formPanel.setBackground(BG_WHITE);
 
         idField = new JTextField();
         titleField = new JTextField();
@@ -115,27 +148,29 @@ public class AdminDashboard extends JFrame {
         yearField = new JTextField();
         locationField = new JTextField();
 
-        formPanel.add(new JLabel("Book ID:"));
+        formPanel.add(createFormLabel("Book ID:"));
         formPanel.add(idField);
-        formPanel.add(new JLabel("Title:"));
+        formPanel.add(createFormLabel("Title:"));
         formPanel.add(titleField);
-        formPanel.add(new JLabel("Author:"));
+        formPanel.add(createFormLabel("Author:"));
         formPanel.add(authorField);
-        formPanel.add(new JLabel("Genre:"));
+        formPanel.add(createFormLabel("Genre:"));
         formPanel.add(genreField);
-        formPanel.add(new JLabel("Publication Year:"));
+        formPanel.add(createFormLabel("Publication Year:"));
         formPanel.add(yearField);
-        formPanel.add(new JLabel("Library Location:"));
+        formPanel.add(createFormLabel("Library Location:"));
         formPanel.add(locationField);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton addButton = new JButton("Add Book");
+        buttonPanel.setBackground(BG_WHITE);
+
+        JButton addButton = createStyledButton("Add Book");
         addButton.addActionListener(this::addBook);
-        JButton editButton = new JButton("Edit Book");
+        JButton editButton = createStyledButton("Edit Book");
         editButton.addActionListener(this::editBook);
-        JButton deleteButton = new JButton("Delete Book");
+        JButton deleteButton = createStyledButton("Delete Book");
         deleteButton.addActionListener(this::deleteBook);
-        JButton clearButton = new JButton("Clear Fields");
+        JButton clearButton = createStyledButton("Clear Fields");
         clearButton.addActionListener(e -> clearFields());
 
         buttonPanel.add(addButton);
@@ -150,6 +185,7 @@ public class AdminDashboard extends JFrame {
             }
         };
         bookTable = new JTable(bookTableModel);
+        styleTable(bookTable);
         bookTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         bookTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) populateFieldsFromSelectedBook();
@@ -159,6 +195,7 @@ public class AdminDashboard extends JFrame {
         scrollPane.setPreferredSize(new Dimension(900, 300));
 
         JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.setBackground(BG_WHITE);
         northPanel.add(formPanel, BorderLayout.NORTH);
         northPanel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -169,9 +206,18 @@ public class AdminDashboard extends JFrame {
         return panel;
     }
 
+    private JLabel createFormLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        label.setForeground(TEXT_DARK);
+        return label;
+    }
+
     private JPanel createBorrowRequestsPanel() {
+        // unchanged
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(BG_WHITE);
 
         String[] columnNames = {"Request ID", "User", "Book ID", "Title", "Request Date", "Status"};
         borrowRequestsModel = new DefaultTableModel(columnNames, 0) {
@@ -180,17 +226,20 @@ public class AdminDashboard extends JFrame {
             }
         };
         borrowRequestsTable = new JTable(borrowRequestsModel);
+        styleTable(borrowRequestsTable);
         borrowRequestsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane scrollPane = new JScrollPane(borrowRequestsTable);
         scrollPane.setPreferredSize(new Dimension(900, 300));
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton approveButton = new JButton("Approve");
+        buttonPanel.setBackground(BG_WHITE);
+
+        JButton approveButton = createStyledButton("Approve");
         approveButton.addActionListener(e -> approveRequest());
-        JButton rejectButton = new JButton("Reject");
+        JButton rejectButton = createStyledButton("Reject");
         rejectButton.addActionListener(e -> rejectRequest());
-        JButton refreshButton = new JButton("Refresh");
+        JButton refreshButton = createStyledButton("Refresh");
         refreshButton.addActionListener(e -> {
             refreshBorrowRequests();
             updateDashboardStats();
@@ -209,7 +258,9 @@ public class AdminDashboard extends JFrame {
     }
 
     private JPanel createUserManagementPanel() {
+        // unchanged
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(BG_WHITE);
 
         String[] columnNames = {"Username", "Full Name", "Contact", "Role", "Membership ID"};
         userTableModel = new DefaultTableModel(columnNames, 0) {
@@ -218,12 +269,13 @@ public class AdminDashboard extends JFrame {
             }
         };
         userTable = new JTable(userTableModel);
+        styleTable(userTable);
         userTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane scrollPane = new JScrollPane(userTable);
         scrollPane.setPreferredSize(new Dimension(900, 300));
 
-        JButton deleteUserButton = new JButton("Delete Selected User");
+        JButton deleteUserButton = createStyledButton("Delete Selected User");
         deleteUserButton.addActionListener(e -> deleteUser());
 
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -358,10 +410,9 @@ public class AdminDashboard extends JFrame {
         genreField.setText("");
         yearField.setText("");
         locationField.setText("");
-        bookTable.clearSelection();
     }
 
-    private void approveRequest() {
+      private void approveRequest() {
         int selectedRow = borrowRequestsTable.getSelectedRow();
         if (selectedRow >= 0) {
             String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
@@ -379,13 +430,45 @@ public class AdminDashboard extends JFrame {
         int selectedRow = borrowRequestsTable.getSelectedRow();
         if (selectedRow >= 0) {
             String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
-            if (BookManager.rejectBorrow(requestId)) {
+            if (BookManager.updateRequestStatus(requestId, "REJECTED")) {
                 JOptionPane.showMessageDialog(this, "Request rejected.");
                 refreshBorrowRequests();
+                refreshBookTable();
                 updateDashboardStats();
             }
-        } else {
-            JOptionPane.showMessageDialog(this, "Please select a request to reject.");
         }
+    }
+
+    // Styled button factory for consistent green theme
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        button.setBackground(PRIMARY_GREEN);
+        button.setForeground(Color.black);
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(BUTTON_GREEN);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(PRIMARY_GREEN);
+            }
+        });
+        return button;
+    }
+
+    private void styleTable(JTable table) {
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setRowHeight(24);
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setBackground(LIGHT_GRAY);
+        table.getTableHeader().setForeground(TEXT_DARK);
+        table.setGridColor(new Color(220, 220, 220));
+        table.setShowGrid(true);
+        table.setSelectionBackground(BUTTON_GREEN);
+        table.setSelectionForeground(BG_WHITE);
     }
 }

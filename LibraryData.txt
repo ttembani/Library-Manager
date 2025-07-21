@@ -7,6 +7,9 @@ BOOK|Clean Code|Robert C. Martin|5236|available
 BOOK|Artificial Intelligence: A Modern Approach|Stuart Russell and Peter Norvig|7589|available
 BOOK|Journey to jo'burg|Beverley Naidoo|7812|available
 BOOK|The Midnight Library|Matt Haig|7854|available
+BOOK| The Future of AI|Jane Algorithm|4568|available
 
 BORROW|Mtshweni|7812|Fri Jul 18 13:09:55 SAST 2025
 RETURN|Mtshweni|7812|Fri Jul 18 13:10:57 SAST 2025
+BORROW|Mtshweni|4568|Mon Jul 21 15:29:57 SAST 2025
+RETURN|Mtshweni|4568|Mon Jul 21 15:31:23 SAST 2025

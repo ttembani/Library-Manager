@@ -260,4 +260,13 @@ public class BookManager {
                 .filter(r -> r.getUserId().equals(userId))
                 .collect(Collectors.toList());
     }
+
+    public static boolean updateRequestStatus(String requestId, String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateRequestStatus'");
+    }
+
+    static Object getAllBorrowRequests() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
