@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.io.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -73,7 +74,7 @@ public class RegisterFrame extends JFrame {
         container.add(usernameField, gbc);
 
         // ID
-        JLabel idLabel = new JLabel("ID:");
+        JLabel idLabel = new JLabel("Membership ID:");
         idLabel.setForeground(Color.WHITE);
         idLabel.setFont(labelFont);
         idField = new JTextField(15);
@@ -175,14 +176,13 @@ public class RegisterFrame extends JFrame {
         btn.setBorderPainted(false);
     }
 
-    // ✅ Updated to save user to LibraryData.txt
     private void handleRegister() {
         String username = usernameField.getText().trim();
         String id = idField.getText().trim();
         String password = new String(passwordField.getPassword());
         String fullName = fullNameField.getText().trim();
         String contact = contactField.getText().trim();
-        String role = "user";  // hardcoded
+        String role = "user";
 
         if (username.isEmpty() || id.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -194,8 +194,16 @@ public class RegisterFrame extends JFrame {
             return;
         }
 
-        User user = new User(username, password, fullName, contact, role, id);
-        UserFileManager.addUser(user); // Save to LibraryData.txt (not users.dat)
+        // ✅ Save using pipe format directly
+        String userLine = String.format("USER|%s|%s|%s|%s|%s|%s", username, password, fullName, contact, role, id);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("LibraryData.txt", true))) {
+            writer.write(userLine);
+            writer.newLine();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error saving user!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         JOptionPane.showMessageDialog(this, "Registered successfully!\nYour password: " + password,
                 "Success", JOptionPane.INFORMATION_MESSAGE);

@@ -1,10 +1,12 @@
-Mtshweni,7!YG4qAZA$,Thabisile Mtshweni,0637821795,user,9907151244236
+USER|LisaT|-@&EPtsYok|Lisa Tembani|0796353245|user|4568973266985
+USER|Mtshweni|7!YG4qAZA$|Thabisile Mtshweni|0637821795|user|9907151244236
 admin,admin,Zanele Mlomo,0833942886,admin,2121
 
 BOOK|Whispers of the Ancients| Laila M. Stone|8965|available
 BOOK|Clean Code|Robert C. Martin|5236|available
 BOOK|Artificial Intelligence: A Modern Approach|Stuart Russell and Peter Norvig|7589|available
 BOOK|Journey to jo'burg|Beverley Naidoo|7812|available
+BOOK|The Midnight Library|Matt Haig|7854|available
 
 BORROW|Mtshweni|7812|Fri Jul 18 13:09:55 SAST 2025
 RETURN|Mtshweni|7812|Fri Jul 18 13:10:57 SAST 2025

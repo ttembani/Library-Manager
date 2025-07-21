@@ -15,6 +15,10 @@ public class AdminDashboard extends JFrame {
     private DefaultTableModel userTableModel;
     private JTextField idField, titleField, authorField, genreField, yearField, locationField;
 
+    private JLabel totalBooksLabel;
+    private JLabel availableBooksLabel;
+    private JLabel pendingRequestsLabel;
+
     public AdminDashboard(User adminUser) {
         this.adminUser = adminUser;
         initializeUI();
@@ -53,20 +57,20 @@ public class AdminDashboard extends JFrame {
         JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 10));
         statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        List<Book> books = BookManager.getAllBooks();
-        int totalBooks = books.size();
-        int availableBooks = (int) books.stream().filter(Book::isAvailable).count();
-        int pendingRequests = BookManager.getPendingRequests().size();
+        totalBooksLabel = new JLabel();
+        availableBooksLabel = new JLabel();
+        pendingRequestsLabel = new JLabel();
 
-        statsPanel.add(createStatCard("Total Books", String.valueOf(totalBooks), Color.BLUE));
-        statsPanel.add(createStatCard("Available Books", String.valueOf(availableBooks), Color.GREEN));
-        statsPanel.add(createStatCard("Pending Requests", String.valueOf(pendingRequests), Color.ORANGE));
+        statsPanel.add(createStatCard("Total Books", totalBooksLabel, Color.BLUE));
+        statsPanel.add(createStatCard("Available Books", availableBooksLabel, Color.GREEN));
+        statsPanel.add(createStatCard("Pending Requests", pendingRequestsLabel, Color.ORANGE));
 
         panel.add(statsPanel, BorderLayout.CENTER);
+        updateDashboardStats();
         return panel;
     }
 
-    private JPanel createStatCard(String title, String value, Color color) {
+    private JPanel createStatCard(String title, JLabel valueLabel, Color color) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(color, 2),
@@ -78,12 +82,23 @@ public class AdminDashboard extends JFrame {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setForeground(color);
 
-        JLabel valueLabel = new JLabel(value, SwingConstants.CENTER);
         valueLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         card.add(titleLabel, BorderLayout.NORTH);
         card.add(valueLabel, BorderLayout.CENTER);
         return card;
+    }
+
+    private void updateDashboardStats() {
+        List<Book> books = BookManager.getAllBooks();
+        int totalBooks = books.size();
+        int availableBooks = (int) books.stream().filter(Book::isAvailable).count();
+        int pendingRequests = BookManager.getPendingRequests().size();
+
+        totalBooksLabel.setText(String.valueOf(totalBooks));
+        availableBooksLabel.setText(String.valueOf(availableBooks));
+        pendingRequestsLabel.setText(String.valueOf(pendingRequests));
     }
 
     private JPanel createBookManagementPanel() {
@@ -176,7 +191,11 @@ public class AdminDashboard extends JFrame {
         JButton rejectButton = new JButton("Reject");
         rejectButton.addActionListener(e -> rejectRequest());
         JButton refreshButton = new JButton("Refresh");
-        refreshButton.addActionListener(e -> refreshBorrowRequests());
+        refreshButton.addActionListener(e -> {
+            refreshBorrowRequests();
+            updateDashboardStats();
+            refreshBookTable();
+        });
 
         buttonPanel.add(approveButton);
         buttonPanel.add(rejectButton);
@@ -227,6 +246,7 @@ public class AdminDashboard extends JFrame {
                     book.getLibraryLocation()
             });
         }
+        updateDashboardStats();
     }
 
     private void refreshBorrowRequests() {
@@ -244,6 +264,7 @@ public class AdminDashboard extends JFrame {
                 });
             }
         }
+        updateDashboardStats();
     }
 
     private void refreshUserTable() {
@@ -339,31 +360,32 @@ public class AdminDashboard extends JFrame {
         locationField.setText("");
         bookTable.clearSelection();
     }
+
     private void approveRequest() {
-    int selectedRow = borrowRequestsTable.getSelectedRow();
-    if (selectedRow >= 0) {
-        String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
-        if (BookManager.approveBorrow(requestId)) {
-            JOptionPane.showMessageDialog(this, "Request approved successfully!");
-            refreshBorrowRequests();
-            refreshBookTable();
+        int selectedRow = borrowRequestsTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
+            if (BookManager.approveBorrow(requestId)) {
+                JOptionPane.showMessageDialog(this, "Request approved successfully!");
+                refreshBorrowRequests();
+                refreshBookTable();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a request to approve.");
         }
-    } else {
-        JOptionPane.showMessageDialog(this, "Please select a request to approve.");
     }
-}
 
-private void rejectRequest() {
-    int selectedRow = borrowRequestsTable.getSelectedRow();
-    if (selectedRow >= 0) {
-        String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
-        if (BookManager.rejectBorrow(requestId)) {
-            JOptionPane.showMessageDialog(this, "Request rejected.");
-            refreshBorrowRequests();
+    private void rejectRequest() {
+        int selectedRow = borrowRequestsTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            String requestId = (String) borrowRequestsModel.getValueAt(selectedRow, 0);
+            if (BookManager.rejectBorrow(requestId)) {
+                JOptionPane.showMessageDialog(this, "Request rejected.");
+                refreshBorrowRequests();
+                updateDashboardStats();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a request to reject.");
         }
-    } else {
-        JOptionPane.showMessageDialog(this, "Please select a request to reject.");
     }
-}
-
 }

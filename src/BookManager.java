@@ -83,7 +83,7 @@ public class BookManager {
             String line = String.format("BORROW|%s|%s|%s",
                     record.getUserId(), record.getBookId(), new Date().toString());
             bw.write(line);
-            bw.newLine(); // ✅ Only 1 line
+            bw.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -94,7 +94,7 @@ public class BookManager {
             String line = String.format("RETURN|%s|%s|%s",
                     record.getUserId(), record.getBookId(), new Date().toString());
             bw.write(line);
-            bw.newLine(); // ✅ Only 1 line
+            bw.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
