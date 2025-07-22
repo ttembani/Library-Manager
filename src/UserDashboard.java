@@ -1,17 +1,22 @@
-// Your imports here
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class UserDashboard extends JFrame {
     private final User user;
     private JTable bookTable;
     private JTable myBooksTable;
+    private JTable historyTable;
     private DefaultTableModel booksModel;
     private DefaultTableModel myBooksModel;
+    private DefaultTableModel historyModel;
     private JTextField searchField;
+    private JComboBox<String> historyFilterCombo;
 
     // Define green & white colors for theme
     private final Color PRIMARY_GREEN = new Color(46, 125, 50);        // #2E7D32
@@ -27,7 +32,7 @@ public class UserDashboard extends JFrame {
 
     private void initializeUI() {
         setTitle("User Dashboard - " + user.getFullName());
-        setSize(1000, 700);
+        setSize(1100, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -65,11 +70,12 @@ public class UserDashboard extends JFrame {
         profileMenu.add(logoutItem);
 
         profileButton.addActionListener(e -> profileMenu.show(profileButton, 0, profileButton.getHeight()));
+
         // Create a horizontal panel to hold both logout and profile buttons
         JPanel topRightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        topRightButtons.setOpaque(false); // Make it transparent like the header
+        topRightButtons.setOpaque(false);
 
-// Logout button
+        // Logout button
         JButton logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         logoutButton.setFocusPainted(false);
@@ -78,19 +84,19 @@ public class UserDashboard extends JFrame {
         logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logoutButton.addActionListener(this::logoutAction);
 
-// Add buttons to the top-right panel
+        // Add buttons to the top-right panel
         topRightButtons.add(logoutButton);
         topRightButtons.add(profileButton);
 
-// Add the panel to the header
+        // Add the panel to the header
         headerPanel.add(topRightButtons, BorderLayout.EAST);
-
 
         // Tabs
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tabbedPane.addTab("Browse Books", createBookBrowsePanel());
         tabbedPane.addTab("My Books", createMyBooksPanel());
+        tabbedPane.addTab("Borrow History", createHistoryPanel());
 
         add(headerPanel, BorderLayout.NORTH);
         add(tabbedPane, BorderLayout.CENTER);
@@ -151,7 +157,7 @@ public class UserDashboard extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         panel.setBackground(BG_WHITE);
 
-        String[] columns = { "Request ID", "Book ID", "Title", "Status", "Request Date" };
+        String[] columns = { "Request ID", "Book ID", "Title", "Status", "Request Date", "Due Date" };
         myBooksModel = new DefaultTableModel(columns, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
@@ -165,6 +171,104 @@ public class UserDashboard extends JFrame {
         panel.add(new JScrollPane(myBooksTable), BorderLayout.CENTER);
         panel.add(returnButton, BorderLayout.SOUTH);
         return panel;
+    }
+
+    private JPanel createHistoryPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(BG_WHITE);
+
+        // Filter panel
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        filterPanel.setBackground(BG_WHITE);
+
+        JLabel filterLabel = new JLabel("Filter by:");
+        filterLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        historyFilterCombo = new JComboBox<>(new String[]{"All", "Borrowed", "Returned", "Pending", "Approved", "Rejected"});
+        historyFilterCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        historyFilterCombo.addActionListener(e -> refreshHistoryTable());
+
+        JButton refreshButton = createStyledButton("Refresh");
+        refreshButton.addActionListener(e -> refreshHistoryTable());
+
+        filterPanel.add(filterLabel);
+        filterPanel.add(historyFilterCombo);
+        filterPanel.add(refreshButton);
+
+        // History table
+        String[] columns = { "Book Title", "Author", "Status", "Borrow Date", "Due Date", "Return Date" };
+        historyModel = new DefaultTableModel(columns, 0) {
+            @Override public boolean isCellEditable(int row, int col) { return false; }
+        };
+        historyTable = new JTable(historyModel);
+        styleTable(historyTable);
+
+        // Add row renderer for overdue books
+        historyTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                String status = (String) table.getModel().getValueAt(row, 2);
+                String dueDateStr = (String) table.getModel().getValueAt(row, 4);
+
+                if ("APPROVED".equals(status) && dueDateStr != null && !dueDateStr.isEmpty()) {
+                    LocalDate dueDate = LocalDate.parse(dueDateStr, formatter);
+                    if (LocalDate.now().isAfter(dueDate)) {
+                        c.setBackground(new Color(255, 230, 230)); // Light red for overdue
+                        c.setForeground(Color.RED);
+                        return c;
+                    }
+                }
+
+                if (isSelected) {
+                    c.setBackground(BUTTON_GREEN);
+                    c.setForeground(BG_WHITE);
+                } else {
+                    c.setBackground(BG_WHITE);
+                    c.setForeground(TEXT_DARK);
+                }
+
+                return c;
+            }
+        });
+
+        refreshHistoryTable();
+
+        panel.add(filterPanel, BorderLayout.NORTH);
+        panel.add(new JScrollPane(historyTable), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void refreshHistoryTable() {
+        historyModel.setRowCount(0);
+        List<BorrowRecord> records = BookManager.getBorrowHistory(user.getUsername());
+        String filter = (String) historyFilterCombo.getSelectedItem();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (BorrowRecord record : records) {
+            // Apply filter
+            if (!"All".equals(filter) && !filter.equalsIgnoreCase(record.getStatus())) {
+                continue;
+            }
+
+            Book book = BookManager.getBookById(record.getBookId());
+            if (book != null) {
+                historyModel.addRow(new Object[]{
+                        book.getTitle(),
+                        book.getAuthor(),
+                        record.getStatus(),
+                        record.getBorrowDate() != null ? record.getBorrowDate().format(formatter) : "",
+                        record.getDueDate() != null ? record.getDueDate().format(formatter) : "",
+                        record.getReturnDate() != null ? record.getReturnDate().format(formatter) : ""
+                });
+            }
+        }
     }
 
     private void performSearch(ActionEvent e) {
@@ -196,6 +300,8 @@ public class UserDashboard extends JFrame {
     private void refreshMyBooksTable() {
         myBooksModel.setRowCount(0);
         List<BorrowRecord> records = BookManager.getUserBorrowedBooks(user.getUsername());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
         for (BorrowRecord record : records) {
             Book book = BookManager.getBookById(record.getBookId());
             if (book != null) {
@@ -204,7 +310,8 @@ public class UserDashboard extends JFrame {
                         book.getId(),
                         book.getTitle(),
                         record.getStatus(),
-                        record.getRequestDate()
+                        record.getRequestDate().format(formatter),
+                        record.getDueDate() != null ? record.getDueDate().format(formatter) : ""
                 });
             }
         }
@@ -226,6 +333,7 @@ public class UserDashboard extends JFrame {
                 JOptionPane.showMessageDialog(this, "Borrow request submitted! Request ID: " + borrowId);
                 refreshBookTable();
                 refreshMyBooksTable();
+                refreshHistoryTable();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to borrow book.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -246,16 +354,22 @@ public class UserDashboard extends JFrame {
             }
 
             int confirm = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to return this book?",
-                    "Confirm Return", JOptionPane.YES_NO_OPTION);
+                    "Are you sure you want to request return for this book?\n" +
+                            "The return must be approved by an admin.",
+                    "Confirm Return Request", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
-                if (BookManager.returnBook(borrowId)) {
-                    JOptionPane.showMessageDialog(this, "Book returned successfully!");
+                if (BookManager.requestReturn(borrowId)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Return request submitted!\n" +
+                                    "Please wait for admin approval.");
                     refreshBookTable();
                     refreshMyBooksTable();
+                    refreshHistoryTable();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Failed to return book.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this,
+                            "Failed to submit return request.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else {
@@ -273,7 +387,6 @@ public class UserDashboard extends JFrame {
         }
     }
 
-    // === Styled UI Elements ===
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -298,7 +411,7 @@ public class UserDashboard extends JFrame {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.setRowHeight(24);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(245, 245, 245));  // light gray header
+        table.getTableHeader().setBackground(new Color(245, 245, 245));
         table.getTableHeader().setForeground(TEXT_DARK);
         table.setGridColor(new Color(220, 220, 220));
         table.setShowGrid(true);
@@ -306,7 +419,6 @@ public class UserDashboard extends JFrame {
         table.setSelectionForeground(BG_WHITE);
     }
 
-    // === User Profile Frame ===
     private class UserProfileFrame extends JFrame {
         public UserProfileFrame(User user) {
             setTitle("User Profile");

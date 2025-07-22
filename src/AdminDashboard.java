@@ -3,7 +3,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
+import java.time.format.DateTimeFormatter;
 public class AdminDashboard extends JFrame {
     private final User adminUser;
     private JTabbedPane tabbedPane;
@@ -67,6 +67,125 @@ public class AdminDashboard extends JFrame {
         setVisible(true);
     }
 
+
+    private JPanel createBorrowRequestsPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(BG_WHITE);
+
+        // Create tabbed pane for borrow and return requests
+        JTabbedPane requestsTabbedPane = new JTabbedPane();
+
+        // Borrow Requests Tab
+        JPanel borrowRequestsPanel = new JPanel(new BorderLayout());
+        String[] borrowColumnNames = {"Request ID", "User", "Book ID", "Title", "Request Date", "Status"};
+        DefaultTableModel borrowRequestsModel = new DefaultTableModel(borrowColumnNames, 0) {
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        JTable borrowRequestsTable = new JTable(borrowRequestsModel);
+        styleTable(borrowRequestsTable);
+
+        // Return Requests Tab
+        JPanel returnRequestsPanel = new JPanel(new BorderLayout());
+        String[] returnColumnNames = {"Request ID", "User", "Book ID", "Title", "Borrow Date", "Due Date"};
+        DefaultTableModel returnRequestsModel = new DefaultTableModel(returnColumnNames, 0) {
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        JTable returnRequestsTable = new JTable(returnRequestsModel);
+        styleTable(returnRequestsTable);
+
+        // Add tabs
+        requestsTabbedPane.addTab("Borrow Requests", new JScrollPane(borrowRequestsTable));
+        requestsTabbedPane.addTab("Return Requests", new JScrollPane(returnRequestsTable));
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(BG_WHITE);
+
+        JButton approveButton = createStyledButton("Approve");
+        approveButton.addActionListener(e -> {
+            if (requestsTabbedPane.getSelectedIndex() == 0) {
+                approveBorrowRequest(borrowRequestsTable);
+            } else {
+                approveReturnRequest(returnRequestsTable);
+            }
+        });
+
+        JButton rejectButton = createStyledButton("Reject");
+        rejectButton.addActionListener(e -> {
+            if (requestsTabbedPane.getSelectedIndex() == 0) {
+                rejectBorrowRequest(borrowRequestsTable);
+            } else {
+                rejectReturnRequest(returnRequestsTable);
+            }
+        });
+
+        JButton refreshButton = createStyledButton("Refresh");
+        refreshButton.addActionListener(e -> {
+            refreshBorrowRequests(borrowRequestsModel);
+            refreshReturnRequests(returnRequestsModel);
+            updateDashboardStats();
+        });
+
+        buttonPanel.add(approveButton);
+        buttonPanel.add(rejectButton);
+        buttonPanel.add(refreshButton);
+
+        panel.add(requestsTabbedPane, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Initial load
+        refreshBorrowRequests(borrowRequestsModel);
+        refreshReturnRequests(returnRequestsModel);
+        return panel;
+    }
+
+    private void approveReturnRequest(JTable returnRequestsTable) {
+        int selectedRow = returnRequestsTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            DefaultTableModel model = (DefaultTableModel) returnRequestsTable.getModel();
+            String requestId = (String) model.getValueAt(selectedRow, 0);
+            if (BookManager.approveReturn(requestId)) {
+                JOptionPane.showMessageDialog(this, "Return approved successfully!");
+                refreshReturnRequests(model);
+                updateDashboardStats();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a return request to approve.");
+        }
+    }
+
+    private void rejectReturnRequest(JTable returnRequestsTable) {
+        int selectedRow = returnRequestsTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            DefaultTableModel model = (DefaultTableModel) returnRequestsTable.getModel();
+            String requestId = (String) model.getValueAt(selectedRow, 0);
+            if (BookManager.rejectReturn(requestId)) {
+                JOptionPane.showMessageDialog(this, "Return request rejected.");
+                refreshReturnRequests(model);
+            }
+        }
+    }
+
+    private void refreshReturnRequests(DefaultTableModel model) {
+        model.setRowCount(0);
+        for (BorrowRecord record : BookManager.getPendingReturnRequests()) {
+            Book book = BookManager.getBookById(record.getBookId());
+            if (book != null) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                model.addRow(new Object[]{
+                        record.getId(),
+                        record.getUserId(),
+                        book.getId(),
+                        book.getTitle(),
+                        record.getBorrowDate() != null ? record.getBorrowDate().format(formatter) : "",
+                        record.getDueDate() != null ? record.getDueDate().format(formatter) : ""
+                });
+            }
+        }
+    }
+
+
     private JPanel createDashboardPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(BG_WHITE);
@@ -118,16 +237,7 @@ public class AdminDashboard extends JFrame {
         return card;
     }
 
-    private void updateDashboardStats() {
-        List<Book> books = BookManager.getAllBooks();
-        int totalBooks = books.size();
-        int availableBooks = (int) books.stream().filter(Book::isAvailable).count();
-        int pendingRequests = BookManager.getPendingRequests().size();
 
-        totalBooksLabel.setText(String.valueOf(totalBooks));
-        availableBooksLabel.setText(String.valueOf(availableBooks));
-        pendingRequestsLabel.setText(String.valueOf(pendingRequests));
-    }
 
     // ... rest of your code remains unchanged
 
@@ -213,49 +323,7 @@ public class AdminDashboard extends JFrame {
         return label;
     }
 
-    private JPanel createBorrowRequestsPanel() {
-        // unchanged
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        panel.setBackground(BG_WHITE);
 
-        String[] columnNames = {"Request ID", "User", "Book ID", "Title", "Request Date", "Status"};
-        borrowRequestsModel = new DefaultTableModel(columnNames, 0) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        borrowRequestsTable = new JTable(borrowRequestsModel);
-        styleTable(borrowRequestsTable);
-        borrowRequestsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        JScrollPane scrollPane = new JScrollPane(borrowRequestsTable);
-        scrollPane.setPreferredSize(new Dimension(900, 300));
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(BG_WHITE);
-
-        JButton approveButton = createStyledButton("Approve");
-        approveButton.addActionListener(e -> approveRequest());
-        JButton rejectButton = createStyledButton("Reject");
-        rejectButton.addActionListener(e -> rejectRequest());
-        JButton refreshButton = createStyledButton("Refresh");
-        refreshButton.addActionListener(e -> {
-            refreshBorrowRequests();
-            updateDashboardStats();
-            refreshBookTable();
-        });
-
-        buttonPanel.add(approveButton);
-        buttonPanel.add(rejectButton);
-        buttonPanel.add(refreshButton);
-
-        panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
-
-        refreshBorrowRequests();
-        return panel;
-    }
 
     private JPanel createUserManagementPanel() {
         // unchanged
@@ -470,5 +538,59 @@ public class AdminDashboard extends JFrame {
         table.setShowGrid(true);
         table.setSelectionBackground(BUTTON_GREEN);
         table.setSelectionForeground(BG_WHITE);
+    }
+    private void updateDashboardStats() {
+        List<Book> books = BookManager.getAllBooks();
+        int totalBooks = books.size();
+        int availableBooks = (int) books.stream().filter(Book::isAvailable).count();
+        int pendingRequests = BookManager.getPendingRequests().size() +
+                BookManager.getPendingReturnRequests().size();
+
+        totalBooksLabel.setText(String.valueOf(totalBooks));
+        availableBooksLabel.setText(String.valueOf(availableBooks));
+        pendingRequestsLabel.setText(String.valueOf(pendingRequests));
+    }
+    private void approveBorrowRequest(JTable borrowRequestsTable) {
+        int selectedRow = borrowRequestsTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            DefaultTableModel model = (DefaultTableModel) borrowRequestsTable.getModel();
+            String requestId = (String) model.getValueAt(selectedRow, 0);
+            if (BookManager.approveBorrow(requestId)) {
+                JOptionPane.showMessageDialog(this, "Borrow request approved successfully!");
+                refreshBorrowRequests(model);
+                updateDashboardStats();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a borrow request to approve.");
+        }
+    }
+    private void rejectBorrowRequest(JTable borrowRequestsTable) {
+        int selectedRow = borrowRequestsTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            DefaultTableModel model = (DefaultTableModel) borrowRequestsTable.getModel();
+            String requestId = (String) model.getValueAt(selectedRow, 0);
+            if (BookManager.rejectBorrow(requestId)) {
+                JOptionPane.showMessageDialog(this, "Borrow request rejected.");
+                refreshBorrowRequests(model);
+                updateDashboardStats();
+            }
+        }
+    }
+
+    private void refreshBorrowRequests(DefaultTableModel model) {
+        model.setRowCount(0);
+        for (BorrowRecord record : BookManager.getPendingRequests()) {
+            Book book = BookManager.getBookById(record.getBookId());
+            if (book != null) {
+                model.addRow(new Object[]{
+                        record.getId(),
+                        record.getUserId(),
+                        book.getId(),
+                        book.getTitle(),
+                        record.getRequestDate(),
+                        record.getStatus()
+                });
+            }
+        }
     }
 }

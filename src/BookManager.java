@@ -15,6 +15,20 @@ public class BookManager {
         loadData();
     }
 
+    private static void appendReturnRequestToLibraryData(BorrowRecord record) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LIBRARY_DATA_FILE, true))) {
+            String line = String.format("RETURN_REQUEST|%s|%s|%s",
+                    record.getUserId(), record.getBookId(), new Date().toString());
+            bw.write(line);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
     private static void loadData() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(BOOKS_FILE))) {
             books = (List<Book>) ois.readObject();
@@ -43,6 +57,61 @@ public class BookManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean requestReturn(String borrowId) {
+        BorrowRecord record = borrowRecords.stream()
+                .filter(r -> r.getId().equals(borrowId) && "APPROVED".equals(r.getStatus()))
+                .findFirst()
+                .orElse(null);
+
+        if (record != null) {
+            record.requestReturn();
+            saveBorrowRecords();
+            appendReturnRequestToLibraryData(record);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean approveReturn(String borrowId) {
+        BorrowRecord record = borrowRecords.stream()
+                .filter(r -> r.getId().equals(borrowId) && "RETURN_PENDING".equals(r.getStatus()))
+                .findFirst()
+                .orElse(null);
+
+        if (record != null) {
+            Book book = getBookById(record.getBookId());
+            if (book != null) {
+                record.approveReturn();
+                book.setAvailable(true);
+                saveBooks();
+                saveBorrowRecords();
+                appendReturnToLibraryData(record);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean rejectReturn(String borrowId) {
+        BorrowRecord record = borrowRecords.stream()
+                .filter(r -> r.getId().equals(borrowId) && "RETURN_PENDING".equals(r.getStatus()))
+                .findFirst()
+                .orElse(null);
+
+        if (record != null) {
+            record.rejectReturn();
+            saveBorrowRecords();
+            return true;
+        }
+        return false;
+    }
+
+    public static List<BorrowRecord> getPendingReturnRequests() {
+        return borrowRecords.stream()
+                .filter(r -> "RETURN_PENDING".equals(r.getStatus()))
+                .collect(Collectors.toList());
     }
 
     private static void appendBookToLibraryData(Book book) {

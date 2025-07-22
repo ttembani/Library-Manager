@@ -35,6 +35,19 @@ public class BorrowRecord implements Serializable {
         this.dueDate = LocalDate.now().plusWeeks(2);
     }
 
+    public void requestReturn() {
+        this.status = "RETURN_PENDING";
+    }
+
+    public void approveReturn() {
+        this.status = "RETURNED";
+        this.returnDate = LocalDate.now();
+    }
+
+    public void rejectReturn() {
+        this.status = "APPROVED"; // Revert back to approved status
+    }
+
     public void reject() {
         this.status = "REJECTED";
     }
