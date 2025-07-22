@@ -11,7 +11,7 @@ public class RegisterFrame extends JFrame {
     private Image bgImage;
 
     public RegisterFrame() {
-        setTitle("Register");
+        setTitle("Register - SmartShelf Library System");
         setSize(480, 500);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -52,7 +52,7 @@ public class RegisterFrame extends JFrame {
         container.add(title, gbc);
         gbc.gridwidth = 1;
 
-        // Role (locked to User only)
+        // Role
         JLabel roleLabel = new JLabel("Register As:");
         roleLabel.setForeground(Color.WHITE);
         roleLabel.setFont(labelFont);
@@ -73,8 +73,8 @@ public class RegisterFrame extends JFrame {
         gbc.gridx = 1;
         container.add(usernameField, gbc);
 
-        // ID
-        JLabel idLabel = new JLabel("Membership ID:");
+        // ID Number
+        JLabel idLabel = new JLabel("ID Number:");
         idLabel.setForeground(Color.WHITE);
         idLabel.setFont(labelFont);
         idField = new JTextField(15);
@@ -83,12 +83,31 @@ public class RegisterFrame extends JFrame {
         gbc.gridx = 1;
         container.add(idField, gbc);
 
-        // Password
+        // Full Name
+        JLabel nameLabel = new JLabel("Full Name:");
+        nameLabel.setForeground(Color.WHITE);
+        nameLabel.setFont(labelFont);
+        fullNameField = new JTextField(15);
+        gbc.gridy = 4; gbc.gridx = 0;
+        container.add(nameLabel, gbc);
+        gbc.gridx = 1;
+        container.add(fullNameField, gbc);
+
+        // Contact
+        JLabel contactLabel = new JLabel("Contact:");
+        contactLabel.setForeground(Color.WHITE);
+        contactLabel.setFont(labelFont);
+        contactField = new JTextField(15);
+        gbc.gridy = 5; gbc.gridx = 0;
+        container.add(contactLabel, gbc);
+        gbc.gridx = 1;
+        container.add(contactField, gbc);
+
+        // Password (moved here)
         JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setForeground(Color.WHITE);
         passwordLabel.setFont(labelFont);
         passwordField = new JPasswordField(15);
-        passwordField.setEditable(false);
 
         JCheckBox showPassword = new JCheckBox("Show");
         showPassword.setOpaque(false);
@@ -110,7 +129,7 @@ public class RegisterFrame extends JFrame {
             passwordField.setEchoChar('•');
         });
 
-        gbc.gridy = 4; gbc.gridx = 0;
+        gbc.gridy = 6; gbc.gridx = 0;
         container.add(passwordLabel, gbc);
         gbc.gridx = 1;
         container.add(passwordField, gbc);
@@ -119,31 +138,12 @@ public class RegisterFrame extends JFrame {
         passwordRow.setOpaque(false);
         passwordRow.add(generateBtn);
         passwordRow.add(showPassword);
-        gbc.gridy = 5; gbc.gridx = 1;
+        gbc.gridy = 7; gbc.gridx = 1;
         container.add(passwordRow, gbc);
-
-        // Full Name
-        JLabel nameLabel = new JLabel("Full Name:");
-        nameLabel.setForeground(Color.WHITE);
-        nameLabel.setFont(labelFont);
-        fullNameField = new JTextField(15);
-        gbc.gridy = 6; gbc.gridx = 0;
-        container.add(nameLabel, gbc);
-        gbc.gridx = 1;
-        container.add(fullNameField, gbc);
-
-        // Contact
-        JLabel contactLabel = new JLabel("Contact:");
-        contactLabel.setForeground(Color.WHITE);
-        contactLabel.setFont(labelFont);
-        contactField = new JTextField(15);
-        gbc.gridy = 7; gbc.gridx = 0;
-        container.add(contactLabel, gbc);
-        gbc.gridx = 1;
-        container.add(contactField, gbc);
 
         // Buttons
         JPanel buttons = new JPanel();
+        buttons.setOpaque(false);
         registerBtn = new JButton("Register");
         backBtn = new JButton("Back");
         styleButton(registerBtn, new Color(33, 71, 153), Color.WHITE);
@@ -154,7 +154,7 @@ public class RegisterFrame extends JFrame {
         gbc.gridy = 8; gbc.gridx = 0; gbc.gridwidth = 2;
         container.add(buttons, gbc);
 
-        // Add logic
+        // Button Logic
         registerBtn.addActionListener(e -> handleRegister());
         backBtn.addActionListener(e -> {
             new LoginFrame().setVisible(true);
@@ -189,12 +189,16 @@ public class RegisterFrame extends JFrame {
             return;
         }
 
+        if (!id.matches("\\d{13}")) {
+            JOptionPane.showMessageDialog(this, "ID number must be exactly 13 digits.", "Invalid ID", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         if (UserFileManager.userExists(username)) {
             JOptionPane.showMessageDialog(this, "Username already exists!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // ✅ Save using pipe format directly
         String userLine = String.format("USER|%s|%s|%s|%s|%s|%s", username, password, fullName, contact, role, id);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("LibraryData.txt", true))) {
             writer.write(userLine);

@@ -26,5 +26,10 @@ public class User implements Serializable {
     public String getRole() { return role; }
     public String getMembershipId() { return membershipId; }
     public String getEmail() { return email; }   // ✅ ADD THIS
+
+    public void setEmail(String email2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setEmail'");
+    }
     
 }

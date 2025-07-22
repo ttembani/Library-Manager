@@ -104,4 +104,9 @@ public class AuthManager {
         }
         return false;
     }
+
+    public static boolean saveUser(User newUser) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'saveUser'");
+    }
 }
