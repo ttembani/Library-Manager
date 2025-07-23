@@ -400,19 +400,32 @@ public class AdminDashboard extends JFrame {
         }
     }
 
-    private void deleteUser() {
-        int row = userTable.getSelectedRow();
-        if (row >= 0) {
-            String username = (String) userTableModel.getValueAt(row, 0);
-            if (!username.equalsIgnoreCase(adminUser.getUsername())) {
-                UserFileManager.deleteUser(username);
-                JOptionPane.showMessageDialog(this, "User deleted successfully.");
-                refreshUserTable();
-            } else {
-                JOptionPane.showMessageDialog(this, "You cannot delete your own admin account.");
-            }
-        }
+   private void deleteUser() {
+    int row = userTable.getSelectedRow();
+
+    if (row == -1) {
+        JOptionPane.showMessageDialog(this, "Please select a user to delete.");
+        return;
     }
+
+    String username = (String) userTableModel.getValueAt(row, 0);
+
+    if (username.equalsIgnoreCase(adminUser.getUsername())) {
+        JOptionPane.showMessageDialog(this, "You cannot delete your own admin account.");
+        return;
+    }
+
+    int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to delete user: " + username + "?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION);
+
+    if (confirm == JOptionPane.YES_OPTION) {
+        UserFileManager.deleteUser(username);
+        JOptionPane.showMessageDialog(this, "User deleted successfully.");
+        refreshUserTable();
+    }
+}
 
     private void logoutAction(ActionEvent e) {
         int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", "Confirm Logout", JOptionPane.YES_NO_OPTION);

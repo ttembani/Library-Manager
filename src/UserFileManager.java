@@ -6,12 +6,12 @@ import java.util.*;
 public class UserFileManager {
     private static final String USER_FILE = "LibraryData.txt";
 
-    // Add new user in USER|... format to LibraryData.txt
+    // ✅ Add new user in USER|... format to LibraryData.txt
     public static void addUser(User user) {
         appendUserToLibraryData(user);
     }
 
-    // Appends the new user right after existing USER lines, before BOOK or BORROW
+    // ✅ Appends the new user right after existing USER lines, before BOOK or BORROW
     private static void appendUserToLibraryData(User user) {
         File file = new File(USER_FILE);
         List<String> lines = new ArrayList<>();
@@ -32,7 +32,7 @@ public class UserFileManager {
                     user.getMembershipId()
             );
 
-            // Find insert position (after last USER line, before BOOK/BORROW)
+            // Find insert position after last USER line
             int insertIndex = 0;
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i);
@@ -59,7 +59,30 @@ public class UserFileManager {
         }
     }
 
-    // Check if a username already exists
+    // ✅ Delete a user from LibraryData.txt
+    public static void deleteUser(String usernameToDelete) {
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(USER_FILE));
+            List<String> updatedLines = new ArrayList<>();
+
+            for (String line : lines) {
+                if (line.startsWith("USER|")) {
+                    String[] parts = line.split("\\|");
+                    if (parts.length > 1 && parts[1].equalsIgnoreCase(usernameToDelete)) {
+                        continue; // Skip this user
+                    }
+                }
+                updatedLines.add(line);
+            }
+
+            Files.write(Paths.get(USER_FILE), updatedLines);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ✅ Check if a username already exists
     public static boolean userExists(String username) {
         try (BufferedReader reader = new BufferedReader(new FileReader(USER_FILE))) {
             String line;
@@ -77,7 +100,7 @@ public class UserFileManager {
         return false;
     }
 
-    // Load all users from LibraryData.txt
+    // ✅ Load all users from LibraryData.txt
     public static List<User> loadUsers() {
         List<User> users = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(USER_FILE))) {
@@ -99,15 +122,11 @@ public class UserFileManager {
         return users;
     }
 
-    // Optional: Get user by username
+    // ✅ Optional: Get user by username
     public static User getUser(String username) {
         return loadUsers().stream()
                 .filter(u -> u.getUsername().equalsIgnoreCase(username))
                 .findFirst()
                 .orElse(null);
-    }
-
-    static void deleteUser(String username) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

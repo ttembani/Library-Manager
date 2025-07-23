@@ -1,7 +1,7 @@
 USER|LisaT|-@&EPtsYok|Lisa Tembani|0796353245|user|4568973266985
 USER|Mtshweni|7!YG4qAZA$|Thabisile Mtshweni|0637821795|user|9907151244236
 USER|admin|admin|Zanele Mlomo|0833942886|admin|2121
-USER|SiphosethuT|ntanana|Siphosethu Tembani|0987656778|user|0987654321345
+USER|SiphosethuT|ntanana|Siphosethu Tembani|0987654567|user|0987654356789
 
 BOOK|Whispers of the Ancients| Laila M. Stone|8965|available
 BOOK|Clean Code|Robert C. Martin|5236|available
