@@ -1,5 +1,9 @@
 import java.awt.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -103,7 +107,7 @@ public class RegisterFrame extends JFrame {
         gbc.gridx = 1;
         container.add(contactField, gbc);
 
-        // Password (moved here)
+        // Password
         JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setForeground(Color.WHITE);
         passwordLabel.setFont(labelFont);
@@ -200,9 +204,27 @@ public class RegisterFrame extends JFrame {
         }
 
         String userLine = String.format("USER|%s|%s|%s|%s|%s|%s", username, password, fullName, contact, role, id);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("LibraryData.txt", true))) {
-            writer.write(userLine);
-            writer.newLine();
+
+        try {
+            File file = new File("LibraryData.txt");
+            List<String> lines = new ArrayList<>(Files.readAllLines(file.toPath()));
+            List<String> updatedLines = new ArrayList<>();
+            boolean inserted = false;
+
+            for (String line : lines) {
+                if (!line.startsWith("USER|") && !inserted) {
+                    updatedLines.add(userLine); // Insert new user before non-user data
+                    inserted = true;
+                }
+                updatedLines.add(line);
+            }
+
+            if (!inserted) {
+                updatedLines.add(userLine); // Append to top if no USER lines found
+            }
+
+            Files.write(file.toPath(), updatedLines);
+
         } catch (IOException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error saving user!", "Error", JOptionPane.ERROR_MESSAGE);

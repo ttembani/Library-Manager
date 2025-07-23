@@ -1,34 +1,55 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuthManager {
     private static final String DATA_FILE = "LibraryData.txt";
 
-    // ✅ Register new user
+    // ✅ Register new user (Insert in correct position under USER entries)
     public static boolean registerUser(User user) {
         if (userExists(user.getUsername())) {
             return false; // Username already exists
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(DATA_FILE, true))) {
-            String line = String.join("|",
-                    "USER",
-                    user.getUsername(),
-                    user.getPassword(),
-                    user.getFullName(),
-                    user.getContact(),
-                    user.getRole(),
-                    user.getMembershipId()
-            );
-            bw.write(line);
-            bw.newLine();
+        String newUserLine = String.join("|",
+                "USER",
+                user.getUsername(),
+                user.getPassword(),
+                user.getFullName(),
+                user.getContact(),
+                user.getRole(),
+                user.getMembershipId()
+        );
+
+        try {
+            File file = new File(DATA_FILE);
+            List<String> lines = new ArrayList<>(Files.readAllLines(file.toPath()));
+            List<String> updatedLines = new ArrayList<>();
+            boolean inserted = false;
+
+            for (String line : lines) {
+                if (!line.startsWith("USER|") && !inserted) {
+                    updatedLines.add(newUserLine); // Insert before non-user sections
+                    inserted = true;
+                }
+                updatedLines.add(line);
+            }
+
+            if (!inserted) {
+                updatedLines.add(newUserLine); // If no USER lines exist
+            }
+
+            Files.write(file.toPath(), updatedLines);
             return true;
+
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    // ✅ Authenticate user
+    // ✅ Authenticate user (check by USER line format first)
     public static User authenticate(String username, String password) {
         try (BufferedReader br = new BufferedReader(new FileReader(DATA_FILE))) {
             String line;
@@ -63,10 +84,10 @@ public class AuthManager {
                             return new User(
                                     storedUsername,
                                     storedPassword,
-                                    parts[2].trim(), // full name
-                                    parts[3].trim(), // contact
-                                    parts[4].trim(), // role
-                                    parts[5].trim()  // ID
+                                    parts[2].trim(),
+                                    parts[3].trim(),
+                                    parts[4].trim(),
+                                    parts[5].trim()
                             );
                         }
                     }
@@ -80,7 +101,7 @@ public class AuthManager {
         return null; // Not found
     }
 
-    // ✅ Check for duplicate username
+    // ✅ Check if a username already exists
     public static boolean userExists(String username) {
         try (BufferedReader br = new BufferedReader(new FileReader(DATA_FILE))) {
             String line;
@@ -105,8 +126,8 @@ public class AuthManager {
         return false;
     }
 
+    // ❌ Not used yet (placeholder)
     public static boolean saveUser(User newUser) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'saveUser'");
     }
 }

@@ -1,6 +1,7 @@
 USER|LisaT|-@&EPtsYok|Lisa Tembani|0796353245|user|4568973266985
 USER|Mtshweni|7!YG4qAZA$|Thabisile Mtshweni|0637821795|user|9907151244236
-admin,admin,Zanele Mlomo,0833942886,admin,2121
+USER|admin|admin|Zanele Mlomo|0833942886|admin|2121
+USER|SiphosethuT|ntanana|Siphosethu Tembani|0987656778|user|0987654321345
 
 BOOK|Whispers of the Ancients| Laila M. Stone|8965|available
 BOOK|Clean Code|Robert C. Martin|5236|available
@@ -35,9 +36,4 @@ RETURN_REQUEST|LisaT|8895|Tue Jul 22 11:49:05 SAST 2025
 RETURN|LisaT|8895|Tue Jul 22 11:49:46 SAST 2025
 RETURN_REQUEST|LisaT|7854|Tue Jul 22 11:50:32 SAST 2025
 RETURN|LisaT|7854|Tue Jul 22 11:51:03 SAST 2025
-=======
-USER|LinathiB|^NjN-&#wWk|Linathi Bomi|0789636322|user|2365989632
->>>>>>> Stashed changes
-=======
-USER|LinathiB|^NjN-&#wWk|Linathi Bomi|0789636322|user|2365989632
->>>>>>> Stashed changes
+
