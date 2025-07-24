@@ -1,7 +1,7 @@
-USER|LisaT|-@&EPtsYok|Lisa Tembani|0796353245|user|4568973266985
 USER|Mtshweni|7!YG4qAZA$|Thabisile Mtshweni|0637821795|user|9907151244236
 USER|admin|admin|Zanele Mlomo|0833942886|admin|2121
 USER|SiphosethuT|ntanana|Siphosethu Tembani|0987654567|user|0987654356789
+USER|Lisa|Lulonkee|Bolo Lisakhanya|0789654124|user|9907185967898
 
 BOOK|Whispers of the Ancients| Laila M. Stone|8965|available
 BOOK|Clean Code|Robert C. Martin|5236|available
@@ -37,3 +37,7 @@ RETURN|LisaT|8895|Tue Jul 22 11:49:46 SAST 2025
 RETURN_REQUEST|LisaT|7854|Tue Jul 22 11:50:32 SAST 2025
 RETURN|LisaT|7854|Tue Jul 22 11:51:03 SAST 2025
 
+BORROW|SiphosethuT|2234|Thu Jul 24 09:31:55 SAST 2025
+RETURN_REQUEST|SiphosethuT|2234|Thu Jul 24 09:36:27 SAST 2025
+RETURN|LisaT|4568|Thu Jul 24 09:37:12 SAST 2025
+RETURN|SiphosethuT|2234|Thu Jul 24 09:37:16 SAST 2025

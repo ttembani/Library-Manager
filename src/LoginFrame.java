@@ -43,7 +43,7 @@ public class LoginFrame extends JFrame {
         container.setBorder(new EmptyBorder(30, 30, 30, 30));
         container.setMaximumSize(new Dimension(400, 380));
 
-        JLabel titleLabel = new JLabel("Welcome to Library System", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("Welcome to SmartShelf", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
